@@ -381,6 +381,7 @@ mod list {
 }
 
 mod mdtm {
+    use std::path::Path;
     use super::*;
     use pretty_assertions::assert_eq;
 
@@ -418,7 +419,7 @@ mod mdtm {
         // Create a filename in the ftp root that we will look for in the `LIST` output
         let path = harness.root.join("link");
         let target = if absolute { "/target" } else { "target" };
-        std::os::unix::fs::symlink(target, &path).unwrap();
+        sym(target, &path).unwrap();
         let md = std::fs::symlink_metadata(&path).unwrap();
         let modified = md.modified().unwrap();
 
@@ -429,6 +430,16 @@ mod mdtm {
         ftp_stream.login("hoi", "jij").await.unwrap();
         let r = ftp_stream.mdtm("link").await.unwrap().unwrap();
         assert_eq!(r.to_rfc2822(), chrono::DateTime::<chrono::Utc>::from(modified).to_rfc2822());
+    }
+
+    #[cfg(unix)]
+    fn sym(target: &str, path: &Path) -> std::io::Result<()> {
+        std::os::unix::fs::symlink(target, &path)
+    }
+
+    #[cfg(windows)]
+    fn sym(target: &str, path: &Path) -> std::io::Result<()> {
+        std::os::windows::fs::symlink_dir(target, &path)
     }
 }
 
