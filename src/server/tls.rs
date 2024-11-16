@@ -1,6 +1,6 @@
 use crate::options::{FtpsClientAuth, TlsFlags};
 use rustls::{
-    crypto::{aws_lc_rs, aws_lc_rs::Ticketer},
+    crypto::{ring, ring::Ticketer},
     pki_types::{CertificateDer, PrivateKeyDer},
     server::{ClientCertVerifierBuilder, NoServerSessionStorage, StoresServerSessions, WebPkiClientVerifier},
     version::{TLS12, TLS13},
@@ -96,7 +96,7 @@ pub fn new_config<P: AsRef<Path>>(
         versions.push(&TLS13)
     }
 
-    let provider = Arc::new(aws_lc_rs::default_provider());
+    let provider = Arc::new(ring::default_provider());
     let mut config = ServerConfig::builder_with_provider(provider)
         .with_protocol_versions(&versions)
         .map_err(ConfigError::RustlsInit)?
